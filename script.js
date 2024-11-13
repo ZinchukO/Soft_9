@@ -1,30 +1,29 @@
 const display = document.getElementById('display');
-const historyList = document.getElementById('historyList');
-
-// Load the last result and history from localStorage if available
+// Load the last result from localStorage if available
 document.addEventListener('DOMContentLoaded', () => {
   const lastResult = localStorage.getItem('lastResult');
-  const history = JSON.parse(localStorage.getItem('history')) || [];
-  
   if (lastResult) {
     display.value = lastResult;
   }
-  loadHistory(history);
 });
-
+// Add keyboard input support
 document.addEventListener('keydown', (event) => {
   const key = event.key;
-
+  // Check if the key is a number or a basic operator
   if (!isNaN(key) || "+-*/.".includes(key)) {
     append(key);
   } else if (key === 'Enter') {
-    event.preventDefault();
+    // Calculate result on Enter key
+    event.preventDefault(); // Prevent default form submission or other Enter key behavior
     calculate();
   } else if (key === 'Escape') {
+    // Clear display on Escape key
     clearDisplay();
   } else if (key === '%') {
+    // Calculate percentage on '%' key
     calculatePercentage();
   } else if (key === 'Backspace') {
+    // Remove last character on Backspace
     deleteLast();
   }
 });
@@ -39,7 +38,7 @@ function clearDisplay() {
 
 function calculate() {
   const expression = display.value;
-
+  // Use regex to validate the expression before evaluating
   const validPattern = /^[\d+\-*/.() ]+$/;
   if (!validPattern.test(expression)) {
     alert('Invalid expression');
@@ -47,17 +46,16 @@ function calculate() {
   }
 
   try {
+    // Evaluate the expression and update the display
     const result = eval(expression);
     display.value = result;
-
-    // Store the result and save it in history
+    // Store the result in localStorage
     localStorage.setItem('lastResult', result);
-    addToHistory(expression, result);
   } catch (error) {
     alert('Error in calculation');
   }
 }
-
+// Calculate percentage of the current value
 function calculatePercentage() {
   try {
     const currentValue = parseFloat(display.value);
@@ -70,30 +68,7 @@ function calculatePercentage() {
     alert('Error in percentage calculation');
   }
 }
-
+// Delete the last character
 function deleteLast() {
   display.value = display.value.slice(0, -1);
-}
-
-// Add calculation to history
-function addToHistory(expression, result) {
-  const history = JSON.parse(localStorage.getItem('history')) || [];
-  const newEntry = `${expression} = ${result}`;
-  history.push(newEntry);
-
-  // Keep only the last 10 entries
-  if (history.length > 10) history.shift();
-
-  localStorage.setItem('history', JSON.stringify(history));
-  loadHistory(history);
-}
-
-// Load and display history
-function loadHistory(history) {
-  historyList.innerHTML = '';
-  history.forEach(entry => {
-    const li = document.createElement('li');
-    li.textContent = entry;
-    historyList.appendChild(li);
-  });
 }
